@@ -1,23 +1,24 @@
 pipeline {
-    agent any
-    
-    // The new block! This creates a dropdown menu in the Jenkins UI
-    parameters {
-        choice(name: 'TEST_SUITE', choices: ['Smoke', 'Regression', 'Sanity'], description: 'Which test suite do you want to run?')
+    // Instead of 'any', we specify a strict Docker image environment
+    agent {
+        docker {
+            image 'python:3.10-slim'
+        }
     }
 
     stages {
-        stage('Checkout') {
+        stage('Environment Check') {
             steps {
-                echo 'Pulling code...'
+                echo 'Checking the environment inside the isolated container...'
+                // Since this image is Linux-based, we use 'sh' instead of 'bat'!
+                sh 'python --version'
+                sh 'pip --version'
             }
         }
-        stage('Run Dynamic Tests') {
+        stage('Run Isolated Tests') {
             steps {
-                // Notice the ${params.TEST_SUITE} variable. 
-                // Jenkins will replace this with whatever you select!
-                echo "Initializing the ${params.TEST_SUITE} testing environment..."
-                bat "echo Running ${params.TEST_SUITE} tests!"
+                echo 'Executing Pytest inside the container...'
+                sh 'echo "Running tests in an isolated Python 3.10 environment!"'
             }
         }
     }
